@@ -42,10 +42,10 @@ Example Images
 
 ![test_result](https://github.com/tyui592/Avatar-Net_Pytorch/blob/master/sample_images/test_results/chicago_mondrian.png)
 
-* Content image: smaple_images/content_images/chicago.jpg
-* Style image: sample_images/style_images/abstraction.jpg
+* Content image: smaple_images/content_images/cornell.jpg
+* Style image: sample_images/style_images/candy.jpg
 
-![test_result2](https://github.com/tyui592/Avatar-Net_Pytorch/blob/master/sample_images/test_results/chicago_abstraction.png)
+![test_result2](https://github.com/tyui592/Avatar-Net_Pytorch/blob/master/sample_images/test_results/cornell_candy.png)
 
 ### Style interpolation
 
