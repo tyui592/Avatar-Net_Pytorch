@@ -82,6 +82,8 @@ def build_parser():
     parser.add_argument('--patch-size', type=int,
                     help='size of patch for swap normalized content and style features',  default=3)
 
+    parser.add_argument('--patch-stride', type=int,
+                    help='size of patch stride for swap normalized content and style features',  default=1)
     return parser
 
 if __name__ == '__main__':
