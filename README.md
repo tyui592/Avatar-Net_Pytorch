@@ -29,7 +29,7 @@ python main.py --train-flag True --cuda-device-no 0 --imsize 512 --cropsize 256 
 ### Test example script
 
 ```
-python main.py --train-flag False --cuda-device-no 0 --imsize 512 --model-load-path trained_models/network.pth --test-image-path sample_images/content_images/chicago.jpg --test-style-image-path sample_images/style_images/mondrian.jpg --output-image-path chicago_mondrian.png --style-strength 1.0 --patch-size 3 --patch-stride 1
+python main.py --train-flag False --cuda-device-no 0 --imsize 512 --model-load-path trained_models/network.pth --test-content-image-path sample_images/content_images/chicago.jpg --test-style-image-path sample_images/style_images/mondrian.jpg --output-image-path chicago_mondrian.png --style-strength 1.0 --patch-size 3 --patch-stride 1
 ```
 
 Example Images
