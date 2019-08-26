@@ -135,20 +135,20 @@ class StyleDecorator(torch.nn.Module):
         
     def forward(self, content_feature, style_feature, style_strength=1.0, patch_size=3, patch_stride=1): 
 
-        # 1. content feature projection
+        # 1-1. content feature projection
         normalized_content_feature = batch_whitening(content_feature)
 
-        # 1. style feature projection
+        # 1-2. style feature projection
         normalized_style_feature = batch_whitening(style_feature)
 
-        # 2. swap features
+        # 2. swap content and style features
         reassembled_feature = self.reassemble_feature(normalized_content_feature, normalized_style_feature,
                 patch_size=patch_size, patch_stride=patch_stride)
 
         # 3. reconstruction feature with style mean and covariance matrix
         stylized_feature = batch_coloring(reassembled_feature, style_feature)
 
-        # 4. interpolation
+        # 4. content and style interpolation
         result_feature = (1-style_strength) * content_feature + style_strength * stylized_feature
         
         return result_feature

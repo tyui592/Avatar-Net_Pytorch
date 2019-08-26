@@ -20,15 +20,17 @@ class AvatarNet(nn.Module):
 
     def forward(self, c, s, train_flag=False, style_strength=1.0, patch_size=3, patch_stride=1):
 
+        # encode content image
         for encoder in self.encoders:
             c = encoder(c)
 
+        # encode style image and extract multi-scale feature for AdaIN in decoder network
         features = []
         for encoder in self.encoders:
             s = encoder(s)
             features.append(s)
 
-        # delete last feature
+        # delete last style feature
         del features[-1]
 
         if not train_flag:
@@ -38,8 +40,11 @@ class AvatarNet(nn.Module):
             c = decoder(c)
             if features:
                 c = self.adain(c, features.pop())
+
         return c
 
+# Adaptive Instance Normalization
+## ref: https://arxiv.org/abs/1703.06868
 class AdaIN(nn.Module):
     def __init__(self, ):
         super(AdaIN, self).__init__()
@@ -58,6 +63,8 @@ class AdaIN(nn.Module):
         
         return x_.view(b, c, h, w)
 
+
+# get network from vgg feature network
 def get_encoder(vgg, layers):
     encoder = nn.ModuleList()
     temp_seq = nn.Sequential()
@@ -69,22 +76,27 @@ def get_encoder(vgg, layers):
             
     return encoder
 
+# get mirroed vgg feature network
 def get_decoder(vgg, layers):
     decoder = nn.ModuleList()
     temp_seq  = nn.Sequential()
     count = 0
     for i in range(max(layers)-1, -1, -1):
         if isinstance(vgg[i], nn.Conv2d):
+            # get number of in/out channels
             out_channels = vgg[i].in_channels
             in_channels = vgg[i].out_channels
             kernel_size = vgg[i].kernel_size
 
+            # make a [reflection pad + convolution + relu] layer
             temp_seq.add_module(str(count), nn.ReflectionPad2d(padding=(1,1,1,1)))
             count += 1
             temp_seq.add_module(str(count), nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size))
             count += 1
             temp_seq.add_module(str(count), nn.ReLU())
             count += 1
+
+        # change down-sampling(MaxPooling) --> upsampling
         elif isinstance(vgg[i], nn.MaxPool2d):
             temp_seq.add_module(str(count), nn.Upsample(scale_factor=2))
             count += 1

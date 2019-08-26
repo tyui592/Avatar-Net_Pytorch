@@ -5,7 +5,10 @@ from utils import ImageFolder, get_transformer, imsave
 from loss import LossCalculator
 
 def network_train(args):
+    # set device
     device = torch.device("cuda" if args.cuda_device_no >= 0 else "cpu")
+
+    # save arguments
     torch.save(args, args.save_path+"arguments.pth")
 
     # get network
@@ -21,7 +24,6 @@ def network_train(args):
     # get optimizer
     optimizer = torch.optim.Adam(network.decoders.parameters(), lr=args.lr)
 
-
     # training
     for iteration in range(args.max_iter):
         data_loader = torch.utils.data.DataLoader(data_set, batch_size=args.batch_size, shuffle=True)
@@ -35,7 +37,7 @@ def network_train(args):
         total_loss.backward()
         optimizer.step()
 
-
+        # print loss log and save network, loss log and output images
         if (iteration + 1) % 1000 == 0:
             loss_calculator.print_loss_seq()
             torch.save(network.state_dict(), args.save_path+"network.pth")
@@ -43,4 +45,3 @@ def network_train(args):
             imsave(output, args.save_path+"training_image.png")
 
     return network
-

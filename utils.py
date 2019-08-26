@@ -6,15 +6,17 @@ import torchvision.transforms as transforms
 
 from PIL import Image
 
+# set Mean and Std of RGB channels of IMAGENET to use pre-trained VGG net
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
+
+# normalize a image with mean, std
 normalize = transforms.Normalize(mean=IMAGENET_MEAN,
                                  std=IMAGENET_STD)
 
+# denormalize a output image
 denormalize = transforms.Normalize(mean=[-mean/std for mean, std in zip(IMAGENET_MEAN, IMAGENET_STD)],
         std=[1/std for std in IMAGENET_STD])
-
-unloader = transforms.ToPILImage()
 
 class ImageFolder(torch.utils.data.Dataset):
     def __init__(self, root_path, transform):

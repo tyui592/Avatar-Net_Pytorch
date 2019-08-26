@@ -8,17 +8,21 @@ from utils import extract_features
 
 class LossCalculator:
     def __init__(self, device, layers, feature_loss_weight, reconstruction_loss_weight, tv_loss_weight):
+        # pre-trained loss network to calculate feature loss
         self.loss_network = torchvision.models.vgg19(pretrained=True).features
         self.loss_network = self.loss_network.to(device)
         
+        # layer indices to extract features 
         self.layers = layers
         
+        # loss weights
         self.feature_loss_weight = feature_loss_weight
         self.reconstruction_loss_weight = reconstruction_loss_weight
         self.tv_loss_weight = tv_loss_weight
         
         self.mse_criterion = nn.MSELoss(reduction='mean')
         
+        # loss log
         self.loss_seq = dict()
         self.loss_seq['total_loss'] = []
         self.loss_seq['feature_loss'] = []

@@ -5,6 +5,7 @@ from utils import imload, imsave
 
 
 def network_test(args):
+    # set device
     device = torch.device("cuda" if args.cuda_device_no >= 0 else "cpu")
 
     # load network
