@@ -35,6 +35,8 @@ python main.py --train-flag False --cuda-device-no 0 --imsize 512 --model-load-p
 Example Images
 --
 
+### Stylize a content image with the target style image.
+
 * Content image: sample_images/content_images/chicago.jpg
 * Style image: sample_images/style_images/mondrian.jpg
 
@@ -44,3 +46,17 @@ Example Images
 * Style image: sample_images/style_images/abstraction.jpg
 
 ![test_result2](https://github.com/tyui592/Avatar-Net_Pytorch/blob/master/sample_images/test_results/chicago_abstraction.png)
+
+### Style interpolation
+
+* Content image: smaple_images/content_images/chicago.jpg
+* Style image: sample_images/style_images/abstraction.jpg
+
+![test_result3](https://github.com/tyui592/Avatar-Net_Pytorch/blob/master/sample_images/test_results/chicago_abstraction_style-interpolation.png)
+
+### Patch size change
+
+* Content image: smaple_images/content_images/chicago.jpg
+* Style image: sample_images/style_images/abstraction.jpg
+
+![test_result4](https://github.com/tyui592/Avatar-Net_Pytorch/blob/master/sample_images/test_results/chicago_abstraction_patch-size.png)
