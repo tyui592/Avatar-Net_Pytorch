@@ -133,34 +133,22 @@ class StyleDecorator(torch.nn.Module):
 
    
         
-    def forward(self, content_features, style_features, style_strength=1.0, patch_size=3, patch_stride=1): 
+    def forward(self, content_feature, style_feature, style_strength=1.0, patch_size=3, patch_stride=1): 
 
         # 1. content feature projection
-        normalized_content_feature = batch_whitening(content_features)
+        normalized_content_feature = batch_whitening(content_feature)
 
-        
-        # multi-style decorating
-        stylized_features = []
-        for style_feature in style_features:
-            # 1. style feature projection
-            normalized_style_feature = batch_whitening(style_feature)
-            
-            # 2. matching and reassembling
-            reassembled_feature = self.reassemble_feature(normalized_content_feature, 
-                                                        normalized_style_feature, 
-                                                        patch_size=patch_size,
-                                                        patch_stride=patch_stride)
-            
-            # 3. reconstruction feature with style mean and covariance matrix
-            stylized_feature = batch_coloring(reassembled_feature, style_feature)
+        # 1. style feature projection
+        normalized_style_feature = batch_whitening(style_feature)
 
-        
-            stylized_features.append(stylized_feature)
-        
-        # weighted sum
-        stylized_feature = sum(stylized_features)
+        # 2. swap features
+        reassembled_feature = self.reassemble_feature(normalized_content_feature, normalized_style_feature,
+                patch_size=patch_size, patch_stride=patch_stride)
+
+        # 3. reconstruction feature with style mean and covariance matrix
+        stylized_feature = batch_coloring(reassembled_feature, style_feature)
 
         # 4. interpolation
-        result_feature = (1-style_strength) * content_features + style_strength * stylized_feature
+        result_feature = (1-style_strength) * content_feature + style_strength * stylized_feature
         
         return result_feature
