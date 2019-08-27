@@ -25,7 +25,7 @@ def build_parser():
     parser.add_argument('--train-flag', type=str2bool,
                     help='Train flag', required=True)
 
-    parser.add_argument('--max_iter', type=int,
+    parser.add_argument('--max-iter', type=int,
                     help='Train iterations', default=40000)
 
     parser.add_argument('--batch-size', type=int,
@@ -44,16 +44,16 @@ def build_parser():
                     help='Size for crop image durning training', default=None)
 
     parser.add_argument('--layers', type=int, nargs='+',
-                    help='layer indices to extract features', default=[1, 6, 11, 20])
+                    help='Layer indices to extract features', default=[1, 6, 11, 20])
 
     parser.add_argument('--feature-weight', type=float,
-                    help='feautre loss weight', default=0.1)
+                    help='Feautre loss weight', default=0.1)
 
     parser.add_argument('--reconstruction-weight', type=float,
-                    help='image reconstruction loss weight', default=1.0)
+                    help='Image reconstruction loss weight', default=1.0)
 
     parser.add_argument('--tv-weight', type=float,
-                    help='tv loss weight', default=1.0)
+                    help='Total valiation loss weight', default=1.0)
 
     parser.add_argument('--train-data-path', type=str,
                     help='Content data path for training')
@@ -65,22 +65,22 @@ def build_parser():
                     help="Trained model load path")
 
     parser.add_argument('--test-content-image-path', type=str,
-                    help="test content image path")
+                    help="Test content image path")
 
     parser.add_argument('--test-style-image-path', type=str,
-                    help="test style image path")
+                    help="Test style image path")
     
     parser.add_argument('--output-image-path', type=str,
-                    help='output image path to save the stylized image', default='stylized.jpg')
+                    help='Path to save the stylized image', default='stylized.jpg')
 
     parser.add_argument('--style-strength', type=float,
-                    help='content vs style interpolation value: 1(style), 0(content)', default=1.0)
+                    help='Content vs style interpolation value: 1(style), 0(content)', default=1.0)
 
     parser.add_argument('--patch-size', type=int,
-                    help='size of patch for swap normalized content and style features',  default=3)
+                    help='Size of patch for swap normalized content and style features',  default=3)
 
     parser.add_argument('--patch-stride', type=int,
-                    help='size of patch stride for swap normalized content and style features',  default=1)
+                    help='Size of patch stride for swap normalized content and style features',  default=1)
     return parser
 
 if __name__ == '__main__':
