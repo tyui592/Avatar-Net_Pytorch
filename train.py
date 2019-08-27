@@ -38,7 +38,7 @@ def network_train(args):
         optimizer.step()
 
         # print loss log and save network, loss log and output images
-        if (iteration + 1) % 1000 == 0:
+        if (iteration + 1) % args.check_iter == 0:
             loss_calculator.print_loss_seq()
             torch.save(network.state_dict(), args.save_path+"network.pth")
             torch.save(loss_calculator.loss_seq, args.save_path+"loss_seq.pth")
