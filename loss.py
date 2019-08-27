@@ -61,12 +61,10 @@ class LossCalculator:
         tv_loss += torch.mean(torch.abs(x[:, :, :-1, :] - x[:, :, 1:, :]))
         return tv_loss
 
-    def print_loss_seq(self):
+    def print_loss_seq(self, length=100):
         str_ = '%s: '%time.ctime()
         for key, value in self.loss_seq.items():
-            if len(value) > 100:
-                length = 100
-            else:
-                length = 1
+            if len(value) < length:
+                length = len(value)
             str_ += '%s: %2.4f,\t'%(key, sum(value[-length:])/length)
         print(str_)
