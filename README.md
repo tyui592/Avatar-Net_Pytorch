@@ -1,8 +1,7 @@
 Pytorch implementation of "Avatar-Net: Multi-scale Zero-shot Style Transfer by Feature Decoration"
 ---
 
-Pytorch implementation of the paper:
-"Avatar-Net: Multi-scale Zero-shot Style Transfer by Feature Decoration"
+Minseong Kim (tyui592@gmail.com) 
 
 Dependencies
 --
