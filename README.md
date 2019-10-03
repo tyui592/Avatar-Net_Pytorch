@@ -1,11 +1,12 @@
 Pytorch implementation of "Avatar-Net: Multi-scale Zero-shot Style Transfer by Feature Decoration"
----
+==
+**Reference**: https://arxiv.org/abs/1805.03857
+**Contact**: `Minseong Kim` (tyui592@gmail.com) 
 
-Minseong Kim (tyui592@gmail.com) 
-
-Dependencies
+Requirements
 --
 * Pytorch (version >= 0.4.0)
+* Pillow
 
 Download
 --
@@ -35,26 +36,18 @@ Example Images
 
 ### Stylize a content image with the target style image.
 
-* Content image: sample_images/content_images/chicago.jpg
-* Style image: sample_images/style_images/mondrian.jpg
 
 ![test_result](https://github.com/tyui592/Avatar-Net_Pytorch/blob/master/sample_images/test_results/chicago_mondrian.png)
 
-* Content image: smaple_images/content_images/cornell.jpg
-* Style image: sample_images/style_images/candy.jpg
 
 ![test_result2](https://github.com/tyui592/Avatar-Net_Pytorch/blob/master/sample_images/test_results/cornell_candy.png)
 
 ### Style interpolation
 
-* Content image: smaple_images/content_images/chicago.jpg
-* Style image: sample_images/style_images/abstraction.jpg
 
 ![test_result3](https://github.com/tyui592/Avatar-Net_Pytorch/blob/master/sample_images/test_results/chicago_abstraction_style-interpolation.png)
 
 ### Patch size change
 
-* Content image: smaple_images/content_images/chicago.jpg
-* Style image: sample_images/style_images/abstraction.jpg
 
 ![test_result4](https://github.com/tyui592/Avatar-Net_Pytorch/blob/master/sample_images/test_results/chicago_abstraction_patch-size.png)
