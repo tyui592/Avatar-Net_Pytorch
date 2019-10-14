@@ -1,7 +1,8 @@
 Pytorch implementation of "Avatar-Net: Multi-scale Zero-shot Style Transfer by Feature Decoration"
 ==
 
-**Reference**: https://arxiv.org/abs/1805.03857
+
+**Reference**: [Avatar-Net: Multi-scale Zero-shot Style Transfer by Feature Decoration, CVPR 2018](https://arxiv.org/abs/1805.03857)
 
 **Contact**: `Minseong Kim` (tyui592@gmail.com) 
 
