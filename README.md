@@ -1,57 +1,97 @@
-Avatar-Net
-==
+Pytorch implementation of "Avatar-Net: Multi-scale Zero-shot Style Transfer by Feature Decoration"
+---
 
-**Unofficial PyTorch implementation of Avatar-Net**
+**Unofficial Pytorch Implementation of Avatar-Net**
 
-**Reference**: [Avatar-Net: Multi-scale Zero-shot Style Transfer by Feature Decoration, CVPR 2018](https://arxiv.org/abs/1805.03857)
+**Reference**: [Avatar-Net: Multi-scale Zero-shot Style Transfer by Feature Decoration, CVPR2018](https://arxiv.org/abs/1805.03857)
 
 **Contact**: `Minseong Kim` (tyui592@gmail.com) 
 
 Requirements
 --
-* Pytorch (version >= 0.4.0)
-* Pillow
+* torch (version: 1.2.0)
+* torchvision (version: 0.4.0)
+* Pillow (version: 6.1.0)
+* matplotlib (version: 3.1.1)
 
 Download
 --
-* The trained models can be downloaded throuth the [Google drive](https://drive.google.com/drive/folders/1JDgn5oO11AWnbpUxpyrdPe_pYwgfGhSu?usp=sharing).
+* The trained models can be downloaded throuth the [Google drive](https://drive.google.com/open?id=1PVCM0E6TrcClvrHcH1KhlyxLbpSwkYdb).
 * [MSCOCO train2014](http://cocodataset.org/#download) is needed to train the network.
 
 Usage
 --
 
-### Google Colab
-&nbsp;&nbsp; [![colab](https://camo.githubusercontent.com/52feade06f2fecbf006889a904d221e6a730c194/68747470733a2f2f636f6c61622e72657365617263682e676f6f676c652e636f6d2f6173736574732f636f6c61622d62616467652e737667)](https://colab.research.google.com/github/tyui592/Avatar-Net_Pytorch/blob/master/Avatar_Net_evaluate.ipynb)
+### Arguments
+* `--gpu-no`: GPU device number (-1: cpu, 0~N: GPU)
+* `--train`: Flag for the network training (default: False)
+* `--content-dir`: Path of the Content image dataset for training
+* `--imsize`: Size for resizing input images (resize shorter side of the image)
+* `--cropsize`: Size for crop input images (crop the image into squares)
+* `--cencrop`: Flag for crop the center reigion of the image (default: randomly crop)
+* `--check-point`: Check point path for loading trained network
+* `--content`: Content image path to evalute the network
+* `--style`: Style image path to evalute the network
+* `--mask`: Mask image path for masked stylization
+* `--style-strength`: Content vs Style interpolation weight (1.0: style, 0.0: content, default: 1.0)
+* `--interpolatoin-weights`: Weights for multiple style interpolation
+* `--patch-size`: Patch size of style decorator (default: 3)
+* `--patch-stride`: Patch stride of style decorator (default: 1)
+
 
 ### Train example script
 
 ```
-python main.py --train-flag True --cuda-device-no 0 --imsize 512 --cropsize 256 --train-data-path ./coco2014/ --save-path ./trained_models/
+python main.py --train --gpu-no 0 --imsize 512 --cropsize 256 --content-dir ./coco2014/ --save-path ./trained_models/
 ```
 
-### Test example script
+![training_loss](./sample_images/test_results/training_loss.png)
+
+
+### Test example script and image
+* These figures are generated in [jupyter notebook](Avatar-Net.ipynb). You can make the figure yourself.
+
+#### Generate the stylized image with a single style (Content-style interapoltion)
 
 ```
-python main.py --train-flag False --cuda-device-no 0 --imsize 512 --model-load-path trained_models/network.pth --test-content-image-path sample_images/content_images/chicago.jpg --test-style-image-path sample_images/style_images/mondrian.jpg --output-image-path chicago_mondrian.png --style-strength 1.0 --patch-size 3 --patch-stride 1
+python main.py --check-point ./trained_models/check_point.pth --imsize 512 --cropsize 512 --cencrop --content ./sample_images/content/blonde_girl.jpg --style ./sample_images/style/mondrian.jpg --style-strength 1.0
 ```
 
-Results
---
+![content_style_interpolation](./sample_images/test_results/content_style_interpolation.jpg)
 
-### Stylize a content image with the target style image.
+#### Generate the stylized image with multiple style
 
+```
+python main.py --check-point ./trained_models/check_point.pth --imsize 512 --cropsize 512 --content ./sample_images/content/blonde_girl.jpg --style ./sample_images/style/mondrian.jpg ./sample_images/style/abstraction.jpg --interpolation-weights 0.5 0.5
+```
 
-![test_result](https://github.com/tyui592/Avatar-Net_Pytorch/blob/master/sample_images/test_results/chicago_mondrian.png)
-
-
-![test_result2](https://github.com/tyui592/Avatar-Net_Pytorch/blob/master/sample_images/test_results/cornell_candy.png)
-
-### Style interpolation
+![multiple_style_interpolation](./sample_images/test_results/multiple_style_interpolation.jpg)
 
 
-![test_result3](https://github.com/tyui592/Avatar-Net_Pytorch/blob/master/sample_images/test_results/chicago_abstraction_style-interpolation.png)
+#### Generate the stylized image with multiple style and mask
 
-### Patch size change
+```
+python main.py --check-point ./trained_models/check_point.pth --imsize 512 --cropsize 512 --content ./sample_images/content/blonde_girl.jpg --style ./sample_images/style/mondrian.jpg ./sample_images/style/abstraction.jpg --mask ./sample_images/mask/blonde_girl_mask1.jpg ./sample_images/mask/blonde_girl_mask2.jpg --interpolation-weights 1.0 1.0
+```
+
+![masked_stylization](./sample_images/test_results/masked_stylization.jpg)
 
 
-![test_result4](https://github.com/tyui592/Avatar-Net_Pytorch/blob/master/sample_images/test_results/chicago_abstraction_patch-size.png)
+#### Generate the stylized image with varying patch size
+
+```
+python main.py --check-point ./trained_models/check_point.pth --imsize 512 --cropsize 512 --content ./sample_images/content/blonde_girl.jpg --style ./sample_images/style/mondrian.jpg --patch-size 3
+```
+
+![patch_size_variation](./sample_images/test_results/patch_size_variation.jpg)
+
+
+#### Generate the stylized image with varying patch stride
+
+```
+python main.py --check-point ./trained_models/check_point.pth --imsize 512 --cropsize 512 --content ./sample_images/content/blonde_girl.jpg --style ./sample_images/style/mondrian.jpg --patch-stride 4
+```
+
+![patch_stride_variation](./sample_images/test_results/patch_stride_variation.jpg)
+
+
