@@ -1,27 +1,33 @@
 import torch
 
 from network import AvatarNet
-from utils import imload, imsave
+from utils import imload, imsave, maskload
 
 
 def network_test(args):
     # set device
-    device = torch.device("cuda" if args.cuda_device_no >= 0 else "cpu")
+    device = torch.device('cuda' if args.gpu_no >= 0 else 'cpu')
+    
+    # load check point
+    check_point = torch.load(args.check_point)
 
     # load network
     network = AvatarNet(args.layers)
-    network.load_state_dict(torch.load(args.model_load_path))
+    network.load_state_dict(check_point['state_dict'])
     network = network.to(device)
 
     # load target images
-    content_image = imload(args.test_content_image_path, args.imsize, args.cropsize)
-    style_image = imload(args.test_style_image_path, args.imsize, args.cropsize)
-    content_image, style_image = content_image.to(device), style_image.to(device)
-    
+    content_img = imload(args.content, args.imsize, args.cropsize).to(device)
+    style_imgs = [imload(style, args.imsize, args.cropsize, args.cencrop).to(device) for style in args.style]
+    masks = None
+    if args.mask:
+        masks = [maskload(mask).to(device) for mask in args.mask]
+
     # stylize image
     with torch.no_grad():
-        output_image = network(content_image, style_image, args.train_flag, args.style_strength, args.patch_size, args.patch_stride)
+        stylized_img =  network(content_img, style_imgs, args.style_strength, args.patch_size, args.patch_stride,
+                masks, args.interpolation_weights, args.preserve_color, False)
 
-    imsave(output_image.data, args.output_image_path)
-    
-    return output_image
+    imsave(stylized_img, 'stylized_image.jpg')
+
+    return None
