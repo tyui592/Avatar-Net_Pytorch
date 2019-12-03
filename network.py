@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import torchvision
 import torchvision.models as models
 
-from wct import batch_wct
+
 from style_decorator import StyleDecorator
 
 class AvatarNet(nn.Module):
