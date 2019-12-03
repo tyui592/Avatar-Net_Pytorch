@@ -26,7 +26,7 @@ def network_test(args):
     # stylize image
     with torch.no_grad():
         stylized_img =  network(content_img, style_imgs, args.style_strength, args.patch_size, args.patch_stride,
-                masks, args.interpolation_weights, args.preserve_color, False)
+                masks, args.interpolation_weights, False)
 
     imsave(stylized_img, 'stylized_image.jpg')
 
