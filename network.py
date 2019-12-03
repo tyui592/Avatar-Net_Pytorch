@@ -17,7 +17,7 @@ class AvatarNet(nn.Module):
         self.adain = AdaIN()
         self.decorator = StyleDecorator()
 
-    def forward(self, content, styles, style_strength=1.0, patch_size=3, patch_stride=1, masks=None, interpolation_weights=None, preserve_color=False, train=False):
+    def forward(self, content, styles, style_strength=1.0, patch_size=3, patch_stride=1, masks=None, interpolation_weights=None, train=False):
         if interpolation_weights is None:
             interpolation_weights = [1/len(styles)] * len(styles)
         if masks is None:
