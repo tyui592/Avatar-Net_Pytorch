@@ -74,7 +74,7 @@ python main.py --check-point ./trained_models/check_point.pth --imsize 512 --cro
 python main.py --check-point ./trained_models/check_point.pth --imsize 512 --cropsize 512 --content ./sample_images/content/blonde_girl.jpg --style ./sample_images/style/mondrian.jpg ./sample_images/style/abstraction.jpg --mask ./sample_images/mask/blonde_girl_mask1.jpg ./sample_images/mask/blonde_girl_mask2.jpg --interpolation-weights 1.0 1.0
 ```
 
-![masked_stylization](./sample_images/test_results/masked_stylization.jpg)
+![masked_stylization](./sample_images/test_results/masked_stylized_image.jpg)
 
 
 #### Generate the stylized image with varying patch size
