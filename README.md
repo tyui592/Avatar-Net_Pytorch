@@ -19,7 +19,7 @@ Requirements
 
 Download
 --
-* The trained models can be downloaded throuth the [Google drive](https://drive.google.com/open?id=1PVCM0E6TrcClvrHcH1KhlyxLbpSwkYdb).
+* The trained models can be downloaded throuth the [releases](https://github.com/tyui592/Avatar-Net_Pytorch/releases/download/v0.2/check_point.pth).
 * [MSCOCO train2014](http://cocodataset.org/#download) is needed to train the network.
 
 Usage
