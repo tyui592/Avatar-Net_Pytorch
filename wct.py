@@ -1,61 +1,52 @@
 import torch
 
-def mean_covsqrt(f, inverse=False, eps=1e-5):
-    c, h, w = f.size()
+def covsqrt_mean(feature, inverse=False, tolerance=1e-14):
+    # I referenced the default svd tolerance value in matlab.
+
+    b, c, h, w = feature.size()
+
+    mean = torch.mean(feature.view(b, c, -1), dim=2, keepdim=True)
+    zeromean = feature.view(b, c, -1) - mean
+    cov = torch.bmm(zeromean, zeromean.transpose(1, 2))
+
+    evals, evects = torch.symeig(cov, eigenvectors=True)
     
-    f_mean = torch.mean(f.view(c, h*w), dim=1, keepdim=True)
-    f_zeromean = f.view(c, h*w) - f_mean
-    f_cov = torch.mm(f_zeromean, f_zeromean.t())
-
-    u, s, v = torch.svd(f_cov)
-
-    k = c
-    for i in range(c):
-        if s[i] < eps:
-            k = i
-            break
-            
+    p = 0.5
     if inverse:
-        p = -0.5
-    else:
-        p = 0.5
-        
-    f_covsqrt = torch.mm(torch.mm(v[:, 0:k], torch.diag(s[0:k].pow(p))), v[:, 0:k].t())
-    return f_mean, f_covsqrt
+        p *= -1
 
-def whitening(f):
-    c, h, w = f.size()
+    covsqrt = []
+    for i in range(b):
+        k = 0
+        for j in range(c):
+            if evals[i][j] > tolerance:
+                k = j
+                break
+        covsqrt.append(torch.mm(evects[i][:, k:],
+                            torch.mm(evals[i][k:].pow(p).diag_embed(),
+                                     evects[i][:, k:].t())).unsqueeze(0))
+    covsqrt = torch.cat(covsqrt, dim=0)
 
-    f_mean, f_inv_covsqrt = mean_covsqrt(f, inverse=True)
+    u, s, v = torch.svd(cov)
+
+    return covsqrt, mean
     
-    whiten_f = torch.mm(f_inv_covsqrt, f.view(c, h*w) - f_mean)
+
+def whitening(feature):
+    b, c, h, w = feature.size()
     
-    return whiten_f.view(c, h, w)
+    inv_covsqrt, mean = covsqrt_mean(feature, inverse=True)
 
-def coloring(f, t):
-    f_c, f_h, f_w = f.size()
-    t_c, t_h, t_w = t.size()
+    normalized_feature = torch.matmul(inv_covsqrt, feature.view(b, c, -1)-mean)
     
-    t_mean, t_covsqrt = mean_covsqrt(t)
+    return normalized_feature.view(b, c, h, w)
+
+
+def coloring(feature, target):
+    b, c, h, w = feature.size()
+
+    covsqrt, mean = covsqrt_mean(target)
     
-    colored_f = torch.mm(t_covsqrt, f.view(f_c, f_h*f_w)) + t_mean
+    colored_feature = torch.matmul(covsqrt, feature.view(b, c, -1)) + mean
     
-    return colored_f.view(f_c, f_h, f_w)
-
-def batch_whitening(f):
-    b, c, h, w = f.size()
-
-    whiten_f = torch.Tensor(b, c, h, w).type_as(f)
-    for i, f_ in enumerate(torch.split(f, 1)):
-        whiten_f[i] = whitening(f_.squeeze())
-        
-    return whiten_f
-
-def batch_coloring(f, t):
-    b, c, h, w = f.size()
-
-    colored_f = torch.Tensor(b, c, h, w).type_as(f)
-    for i, (f_, t_) in enumerate(zip(torch.split(f, 1), torch.split(t, 1))):
-        colored_f[i] = coloring(f_.squeeze(), t_.squeeze())
-
-    return colored_f
+    return colored_feature.view(b, c, h, w)

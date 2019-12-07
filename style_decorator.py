@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-from wct import batch_whitening, batch_coloring
+from wct import whitening, coloring
 
 def extract_patches(feature, patch_size, stride, padding='zero'):
     kh, kw = patch_size
@@ -136,17 +136,17 @@ class StyleDecorator(torch.nn.Module):
     def forward(self, content_feature, style_feature, style_strength=1.0, patch_size=3, patch_stride=1): 
 
         # 1-1. content feature projection
-        normalized_content_feature = batch_whitening(content_feature)
+        normalized_content_feature = whitening(content_feature)
 
         # 1-2. style feature projection
-        normalized_style_feature = batch_whitening(style_feature)
+        normalized_style_feature = whitening(style_feature)
 
         # 2. swap content and style features
         reassembled_feature = self.reassemble_feature(normalized_content_feature, normalized_style_feature,
                 patch_size=patch_size, patch_stride=patch_stride)
 
         # 3. reconstruction feature with style mean and covariance matrix
-        stylized_feature = batch_coloring(reassembled_feature, style_feature)
+        stylized_feature = coloring(reassembled_feature, style_feature)
 
         # 4. content and style interpolation
         result_feature = (1-style_strength) * content_feature + style_strength * stylized_feature
