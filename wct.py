@@ -27,8 +27,6 @@ def covsqrt_mean(feature, inverse=False, tolerance=1e-14):
                                      evects[i][:, k:].t())).unsqueeze(0))
     covsqrt = torch.cat(covsqrt, dim=0)
 
-    u, s, v = torch.svd(cov)
-
     return covsqrt, mean
     
 
