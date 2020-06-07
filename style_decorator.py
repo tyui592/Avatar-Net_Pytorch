@@ -3,41 +3,33 @@ import torch.nn.functional as F
 
 from wct import whitening, coloring
 
-def extract_patches(feature, patch_size, stride, padding='zero'):
-    kh, kw = patch_size
-    dh, dw = stride
+def extract_patches(feature, patch_size, stride):
+    ph, pw = patch_size
+    sh, sw = stride
     
-    # padding input
-    ph = int((kh-1)/2)
-    pw = int((kw-1)/2)
-    padding_size = (pw, pw, ph, ph)
-    
-    if padding == 'zero':
-        feature = F.pad(feature, padding_size, 'constant', 0)
-    elif padding == 'reflect':
-        feature = F.pad(feature, padding_size, mode= padding)
-    else:
-        raise RuntimeError("padding mode error")
+    # padding the feature
+    padh = (ph - 1) // 2
+    padw = (pw - 1) // 2
+    padding_size = (padw, padw, padh, padh)
+    feature = F.pad(feature, padding_size, 'constant', 0)
 
-    # get all image windows of size (kh, kw) and stride (dh, dw)
-    kernels = feature.unfold(2, kh, dh).unfold(3, kw, dw)
+    # extract patches
+    patches = feature.unfold(2, ph, sh).unfold(3, pw, sw)
+    patches = patches.contiguous().view(*patches.size()[:-2], -1)
     
-    # view the windows as (kh * kw)
-    kernels = kernels.contiguous().view(*kernels.size()[:-2], -1)
-    
-    return kernels
+    return patches
 
 class StyleDecorator(torch.nn.Module):
     
     def __init__(self):
         super(StyleDecorator, self).__init__()
 
-    def kernel_normalize(self,kernel, k=3,  eps=1e-5):
+    def kernel_normalize(self, kernel, k=3):
         b, ch, h, w, kk = kernel.size()
         
         # calc kernel norm
-        kernel = kernel.view(b, ch, h*w, kk).transpose(2,1)
-        kernel_norm = torch.norm(kernel.contiguous().view(b, h*w, ch*kk), p=2, dim=2, keepdim=True) + eps
+        kernel = kernel.view(b, ch, h*w, kk).transpose(2, 1)
+        kernel_norm = torch.norm(kernel.contiguous().view(b, h*w, ch*kk), p=2, dim=2, keepdim=True)
         
         # kernel reshape
         kernel = kernel.view(b, h*w, ch, k, k)
@@ -45,96 +37,83 @@ class StyleDecorator(torch.nn.Module):
         
         return kernel, kernel_norm
 
-    def conv2d_with_style_kernels(self, features, kernels, patch_size, padding='zero', deconv_flag=False):
+    def conv2d_with_style_kernels(self, features, kernels, patch_size, deconv_flag=False):
         output = list()
         b, c, h, w = features.size()
         
         # padding
-        pad_size = (patch_size-1)//2
-        padding_size = (pad_size, pad_size, pad_size, pad_size)
+        pad = (patch_size - 1) // 2
+        padding_size = (pad, pad, pad, pad)
         
         # batch-wise convolutions with style kernels
         for feature, kernel in zip(features, kernels):
-            feature = feature.unsqueeze(0)
-            if padding == 'zero':
-                feature = F.pad(feature, padding_size, 'constant', 0)
-            elif padding == 'reflect':
-                feature = F.pad(feature, padding_size, mode=padding)
-            elif padding == 'none':
-                pass
-            else:
-                raise RuntimeError("padding mode error")
+            feature = F.pad(feature.unsqueeze(0), padding_size, 'constant', 0)
                 
-            # deconvolution by transpose conv weight's in_ch, out_ch
             if deconv_flag:
-                output.append(F.conv_transpose2d(feature, kernel, padding=int(patch_size-1)))
-                # output.append(F.conv_transpose2d(feature, kernel)[:,:,pad_size:-pad_size, pad_size:-pad_size])
+                padding_size = patch_size - 1
+                output.append(F.conv_transpose2d(feature, kernel, padding=padding_size))
             else:
                 output.append(F.conv2d(feature, kernel))
         
         return torch.cat(output, dim=0)
         
-    def binarization_patch_score(self, features):
+    def binarize_patch_score(self, features):
         outputs= list()
         
-        # batch-wise binarization
+        # batch-wise operation
         for feature in features:
-            # best matching patch index
             matching_indices = torch.argmax(feature, dim=0)
             one_hot_mask = torch.zeros_like(feature)
 
             h, w = matching_indices.size()
             for i in range(h):
                 for j in range(w):
-                    ind = matching_indices[i,j]
+                    ind = matching_indices[i, j]
                     one_hot_mask[ind, i, j] = 1
             outputs.append(one_hot_mask.unsqueeze(0))
             
         return torch.cat(outputs, dim=0)
-
    
-    # deconvolution normalize weight mask
     def norm_deconvolution(self, h, w, patch_size):
         mask = torch.ones((h, w))
-        fullmask = torch.zeros( (h+patch_size-1, w+patch_size-1) )
-        for x in range(patch_size):
-            for y in range(patch_size):
-                paddings = (x, patch_size-x-1, y, patch_size-y-1)
-                padded_mask = F.pad(mask, paddings, 'constant', 0)
+        fullmask = torch.zeros((h + patch_size - 1, w + patch_size - 1))
+
+        for i in range(patch_size):
+            for j in range(patch_size):
+                pad = (i, patch_size - i - 1, j, patch_size - j - 1)
+                padded_mask = F.pad(mask, pad, 'constant', 0)
                 fullmask += padded_mask
-        pad_width = int((patch_size-1)/2)
+
+        pad_width = (patch_size - 1) // 2
         if pad_width == 0:
             deconv_norm = fullmask
         else:
             deconv_norm = fullmask[pad_width:-pad_width, pad_width:-pad_width]
+
         return deconv_norm.view(1, 1, h, w)
 
-
     def reassemble_feature(self, normalized_content_feature, normalized_style_feature, patch_size, patch_stride):
-        ## get patches of style feature
-        style_kernel = extract_patches(normalized_style_feature, [patch_size, patch_size],
-                                          [patch_stride, patch_stride])
-        ## kernel normalize
+        # get patches of style feature
+        style_kernel = extract_patches(normalized_style_feature, [patch_size, patch_size], [patch_stride, patch_stride])
+
+        # kernel normalize
         style_kernel, kernel_norm = self.kernel_normalize(style_kernel, patch_size)
         
-        ## convolution with style kernel(patch wise convolution)
+        # convolution with style kernel(patch wise convolution)
         patch_score = self.conv2d_with_style_kernels(normalized_content_feature, style_kernel/kernel_norm, patch_size)
         
-        ## binarization
-        binarized = self.binarization_patch_score(patch_score)
+        # binarization
+        binarized = self.binarize_patch_score(patch_score)
         
-        ## deconv norm
-        deconv_norm = self.norm_deconvolution(h=binarized.size(2), w=binarized.size(3), patch_size= patch_size)
+        # deconv norm
+        deconv_norm = self.norm_deconvolution(h=binarized.size(2), w=binarized.size(3), patch_size=patch_size)
 
-        ## deconvolution
+        # deconvolution
         output = self.conv2d_with_style_kernels(binarized, style_kernel, patch_size, deconv_flag=True)
         
         return output/deconv_norm.type_as(output)
 
-   
-        
     def forward(self, content_feature, style_feature, style_strength=1.0, patch_size=3, patch_stride=1): 
-
         # 1-1. content feature projection
         normalized_content_feature = whitening(content_feature)
 
@@ -142,13 +121,12 @@ class StyleDecorator(torch.nn.Module):
         normalized_style_feature = whitening(style_feature)
 
         # 2. swap content and style features
-        reassembled_feature = self.reassemble_feature(normalized_content_feature, normalized_style_feature,
-                patch_size=patch_size, patch_stride=patch_stride)
+        reassembled_feature = self.reassemble_feature(normalized_content_feature, normalized_style_feature, patch_size=patch_size, patch_stride=patch_stride)
 
         # 3. reconstruction feature with style mean and covariance matrix
         stylized_feature = coloring(reassembled_feature, style_feature)
 
         # 4. content and style interpolation
-        result_feature = (1-style_strength) * content_feature + style_strength * stylized_feature
+        result_feature = (1 - style_strength) * content_feature + style_strength * stylized_feature
         
         return result_feature
