@@ -5,7 +5,6 @@ Avatar-Net: Multi-scale Zero-shot Style Transfer by Feature Decoration
 
 **Reference**: [Avatar-Net: Multi-scale Zero-shot Style Transfer by Feature Decoration, CVPR2018](https://arxiv.org/abs/1805.03857)
 
-**Contact**: `Minseong Kim` (tyui592@gmail.com) 
 
 ![result_image](./sample_images/test_results/stylization.jpg)
 
